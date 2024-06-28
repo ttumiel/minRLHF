@@ -8,11 +8,11 @@ I also tried to add as many comments as possible, my own understanding of what's
 going on.
 """
 
-import os
 import json
+import os
+
 import regex as re
 import requests
-
 import torch
 
 # -----------------------------------------------------------------------------
@@ -259,6 +259,8 @@ class BPETokenizer:
 
     def __init__(self):
         self.encoder = get_encoder()
+        self.eot_char = "<|endoftext|>" # NOTE: Encoding this is broken!
+        self.eot_token = 50256
 
     def __call__(self, text, return_tensors='pt'):
         # PyTorch only; here because we want to match huggingface/transformers interface
