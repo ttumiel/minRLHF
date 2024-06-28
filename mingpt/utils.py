@@ -1,14 +1,39 @@
 
-import os
-import sys
 import json
+import os
 import random
+import sys
 from ast import literal_eval
+from contextlib import nullcontext
 
 import numpy as np
 import torch
 
 # -----------------------------------------------------------------------------
+
+def lr_schedule(max_lr, max_iters, n_warmup=100, min_percent=0.1):
+    "lr scheduler with linear warmup steps to max_lr, then a linear decay to min_percent*max_lr"
+    def get_lr(current_step):
+        if current_step < n_warmup:
+            # Warm-up phase: Linear increase from 0 to lr
+            return max_lr * ((current_step + 1) / n_warmup)
+        elif current_step <= max_iters:
+            # Decay phase: Linear decrease from lr to 0.1 * lr
+            return max_lr - (max_lr - min_percent * max_lr) * (
+                (current_step - n_warmup) / (max_iters - n_warmup)
+            )
+        else:
+            # Constant learning rate after max_iters
+            return min_percent * max_lr
+    return get_lr
+
+def masked_mean(x, mask, dim=None):
+    return (x * mask).sum(dim=dim) / mask.sum(dim=dim)
+
+def try_auto_cast(device):
+    if torch.cuda.is_available() and torch.cuda.is_bf16_supported():
+        return torch.autocast(device_type=device, dtype=torch.bfloat16)
+    return nullcontext()
 
 def set_seed(seed):
     random.seed(seed)
