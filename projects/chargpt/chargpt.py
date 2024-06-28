@@ -53,14 +53,8 @@ class CharDataset(Dataset):
 
     def __init__(self, config, data):
         self.config = config
-
-        chars = sorted(list(set(data)))
-        data_size, vocab_size = len(data), len(chars)
-        print('data has %d characters, %d unique.' % (data_size, vocab_size))
-
-        self.stoi = { ch:i for i,ch in enumerate(chars) }
-        self.itos = { i:ch for i,ch in enumerate(chars) }
-        self.vocab_size = vocab_size
+        self.tokenizer = CharTokenizer(data)
+        self.vocab_size = self.tokenizer.vocab_size
         self.data = data
 
     def get_vocab_size(self):
@@ -76,7 +70,7 @@ class CharDataset(Dataset):
         # grab a chunk of (block_size + 1) characters from the data
         chunk = self.data[idx:idx + self.config.block_size + 1]
         # encode every character to an integer
-        dix = [self.stoi[s] for s in chunk]
+        dix = self.tokenizer(chunk)
         # return as tensors
         x = torch.tensor(dix[:-1], dtype=torch.long)
         y = torch.tensor(dix[1:], dtype=torch.long)
