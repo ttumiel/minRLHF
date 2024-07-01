@@ -295,12 +295,14 @@ class GPT(nn.Module):
         return torch.gather(all_log_probs, dim=-1, index=tgt[..., None]).squeeze(-1)
 
     @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, do_sample=False, top_k=None, attention_mask=None):
+    def generate(self, idx, max_new_tokens, temperature=1.0, do_sample=False, top_k=None, attention_mask=None, stop_at=None):
         """
         Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
         the sequence max_new_tokens times, feeding the predictions back into the model each time.
         Most likely you'll want to make sure to be in model.eval() mode of operation for this.
         """
+        assert stop_at is None or idx.size(0) == 1, "Early stopping only supported for single batches."
+
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
@@ -321,6 +323,9 @@ class GPT(nn.Module):
                 idx_next = torch.argmax(probs, dim=-1, keepdim=True)
             # append sampled index to the running sequence and continue
             idx = torch.cat((idx, idx_next), dim=1)
+
+            if stop_at is not None and idx[0, -1] == stop_at:
+                break
 
             if attention_mask is not None:
                 next_mask = torch.full((attention_mask.size(0), 1), False, dtype=bool, device=attention_mask.device)
