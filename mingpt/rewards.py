@@ -4,15 +4,11 @@ from torch import nn
 from mingpt.model import Transformer
 
 
-def calculate_advantage_and_returns(rewards, values, action_mask, gamma, lambd):
+def calculate_advantage_and_returns(rewards, values, gamma, lambd):
     """Calculate the GAE estimate of the advantage."""
     lastgaelam = 0
     advantages = torch.zeros_like(rewards)
     gen_len = rewards.size(1)
-
-    # Mask invalid responses
-    values = action_mask * values
-    rewards = action_mask * rewards
 
     for t in reversed(range(gen_len)):
         nextvalues = values[:, t + 1] if t < gen_len - 1 else 0.0
@@ -131,7 +127,7 @@ class RewardModel(nn.Module):
             reward_idxs = attn_mask.size(1) - torch.flip(attn_mask, dims=[1]).to(torch.int64).argmin(dim=1) - 1
 
         x = x[torch.arange(x.size(0)), reward_idxs] # (b, n_embd)
-        rewards = self.prediction_head(x).squeeze(-1) # (b,)
+        rewards = self.prediction_head(x).squeeze(1) # (b,)
 
         if positive_tokens is not None:
             s = positive_tokens.size(0)
