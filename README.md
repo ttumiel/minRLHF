@@ -5,6 +5,9 @@ A minimal pytorch implementation of RLHF on top of Karpathy's minGPT repo.
 
 Read more: https://ttumiel.com/blog/min-rlhf/
 
+- **HappyGPT**: an 0.8M parameter LM trained to generate positive sentiment tweets. [`/minRLHF/projects/happy_gpt`](https://github.com/ttumiel/minRLHF/tree/master/projects/happy_gpt)
+- **Text Summarization**: finetuning the pretrained 124M GPT-2 model on text summarization task. [`/minRLHF/projects/summarize_rlhf`](https://github.com/ttumiel/minRLHF/tree/master/projects/summarize_rlhf)
+
 -----
 
 **Below is the original minGPT readme:**
